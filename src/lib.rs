@@ -112,11 +112,35 @@ impl Universe {
 
 #[wasm_bindgen]
 impl Universe {
-    pub fn new() -> Universe {
+
+    pub fn default() -> Universe {
         utils::set_panic_hook();
 
         let width = 64;
         let height = 64;
+        let ticks = 0;
+
+        let cells = (0..width * height).map(|_| {
+            if Math::random() < 0.2 {
+                Cell::Alive
+            } else {
+                Cell::Dead
+            }
+        }).collect();
+
+        Universe {
+            width,
+            height,
+            cells,
+            ticks
+        }
+    }
+
+    pub fn new(width: u32, height: u32) -> Universe {
+        utils::set_panic_hook();
+
+        let width = width;
+        let height = height;
         let ticks = 0;
 
         let cells = (0..width * height).map(|_| Cell::Dead).collect();
