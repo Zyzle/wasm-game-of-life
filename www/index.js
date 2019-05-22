@@ -12,6 +12,7 @@ const height = universe.height();
 
 const canvas = document.getElementById('game-of-life-canvas');
 const playPauseButton = document.getElementById('play-pause');
+const randomizeButton = document.getElementById('make-random');
 
 canvas.height = (CELL_SIZE + 1) * height + 1;
 canvas.width = (CELL_SIZE + 1) * width + 1;
@@ -145,6 +146,12 @@ canvas.addEventListener('click', e => {
 
   universe.toggle_cell(row, col);
 
+  drawGrid();
+  drawCells();
+});
+
+randomizeButton.addEventListener('click', e => {
+  universe.randomize();
   drawGrid();
   drawCells();
 });

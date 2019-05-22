@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Colin McCulloch <n1l0c2501@gmail.com>"]
 edition = "2018"
 license = "MIT"
+repository = "https://github.com/Zyzle/wasm-game-of-life.git"
+description = "Built on the Rust WebAssembly tutorial"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
