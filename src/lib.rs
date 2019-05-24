@@ -11,6 +11,7 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+/// Represents a single cell in the Universe that can either be alive of dead
 #[wasm_bindgen]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -20,6 +21,7 @@ pub enum Cell {
 }
 
 impl Cell {
+    /// Toggle a cells state between alive or dead
     fn toggle(&mut self) {
         *self = match *self {
             Cell::Dead => Cell::Alive,
@@ -28,19 +30,28 @@ impl Cell {
     }
 }
 
+/// The Universe in which the game is playing
 #[wasm_bindgen]
 pub struct Universe {
+    /// The width, in cells, of the universe
     width: u32,
+    /// The height, in cells, of the universe
     height: u32,
+    /// The collection of cells that make up the universe
     cells: Vec<Cell>,
+    /// How many animation 'ticks' the universe has gone through since its creation
     ticks: u32
 }
 
+/// Private methods
 impl Universe {
+    /// Based on a given row and column number of a cell get its index in the cells Vector
     fn get_index(&self, row: u32, column: u32) -> usize {
         (row * self.width + column) as usize
     }
 
+    /// Given a row and colum representing a particular cell, calculate the number of Cell::Alive
+    /// adjacent cells
     fn live_neighbour_count(&self, row: u32, column: u32) -> u8 {
         let mut count = 0;
 
@@ -110,9 +121,11 @@ impl Universe {
     }
 }
 
+/// Public functions exposed to wasm
 #[wasm_bindgen]
 impl Universe {
-
+    /// Construct a 'default' universe of height/width of 64 and a randomly distributed set
+    /// of alive cells covering ~20% of the universe
     pub fn default() -> Universe {
         utils::set_panic_hook();
 
@@ -136,6 +149,7 @@ impl Universe {
         }
     }
 
+    /// Create a new universe based on a given cell height and width
     pub fn new(width: u32, height: u32) -> Universe {
         utils::set_panic_hook();
 
@@ -153,6 +167,8 @@ impl Universe {
         }
     }
 
+    /// Clear the current universe cells and replace them with a new randomly
+    /// populated (~20% alive) Vector
     pub fn randomize(&mut self) {
         self.cells = (0..self.width * self.height).map(|_| {
             if Math::random() < 0.2 {
@@ -163,6 +179,7 @@ impl Universe {
         }).collect();
     }
 
+    /// Update the Universe cells based on the Game of Life (rules)[https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules]
     pub fn tick(&mut self) {
         let mut next = self.cells.clone();
 
@@ -188,34 +205,41 @@ impl Universe {
         self.ticks += 1;
     }
 
+    /// Get the current width of the Universe
     pub fn width(&self) -> u32 {
         self.width
     }
 
+    /// Get the current height of the Universe
     pub fn height(&self) -> u32 {
         self.height
     }
 
+    /// Return a pointer to the Universes cells Vector, allowing it to be consumed by the WASM host
     pub fn cells(&self) -> *const Cell {
         self.cells.as_ptr()
     }
 
+    /// Update the width of the existing Universe, this also resets the unverse to a completely dead state
     pub fn set_width(&mut self, width: u32) {
         self.width = width;
         self.cells = (0..width * self.height).map(|_i| Cell::Dead).collect();
     }
 
+    /// Update the height of the existing Universe, this also resets the universe to a completely dead state
     pub fn set_height(&mut self, height: u32) {
         self.height = height;
         self.cells = (0..self.width * height).map(|_i| Cell::Dead).collect();
     }
 
+    /// Allow cell state to be toggled by the wasm host by providing the cells row and column 
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
         self.cells[idx].toggle();
     }
 }
 
+/// Implementation containing methods for testing
 impl Universe {
     pub fn get_cells(&self) -> &[Cell] {
         &self.cells
