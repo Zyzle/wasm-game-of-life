@@ -1,5 +1,0 @@
-## UniverseControls Component
-
-<!-- STORY -->
-
-<!-- PROPS -->

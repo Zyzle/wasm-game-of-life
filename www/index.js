@@ -6,7 +6,7 @@ const GRID_COLOR = '#ccc';
 const DEAD_COLOR = '#fff';
 const ALIVE_COLOR = '#000';
 
-const universe = Universe.new();
+const universe = Universe.new(64, 32);
 const width = universe.width();
 const height = universe.height();
 
