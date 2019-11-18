@@ -1,4 +1,6 @@
+mod timer;
 mod utils;
+use timer::Timer;
 
 extern crate js_sys;
 use js_sys::Math;
@@ -17,7 +19,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Cell {
     Dead = 0,
-    Alive = 1
+    Alive = 1,
 }
 
 impl Cell {
@@ -25,7 +27,7 @@ impl Cell {
     fn toggle(&mut self) {
         *self = match *self {
             Cell::Dead => Cell::Alive,
-            Cell::Alive => Cell::Dead
+            Cell::Alive => Cell::Dead,
         };
     }
 }
@@ -40,7 +42,7 @@ pub struct Universe {
     /// The collection of cells that make up the universe
     cells: Vec<Cell>,
     /// How many animation 'ticks' the universe has gone through since its creation
-    ticks: u32
+    ticks: u32,
 }
 
 /// Private methods
@@ -69,17 +71,9 @@ impl Universe {
         //     }
         // }
 
-        let north = if row == 0 {
-            self.height - 1
-        } else {
-            row - 1
-        };
+        let north = if row == 0 { self.height - 1 } else { row - 1 };
 
-        let south = if row == self.height - 1 {
-            0
-        } else {
-            row + 1
-        };
+        let south = if row == self.height - 1 { 0 } else { row + 1 };
 
         let west = if column == 0 {
             self.width - 1
@@ -133,19 +127,21 @@ impl Universe {
         let height = 64;
         let ticks = 0;
 
-        let cells = (0..width * height).map(|_| {
-            if Math::random() < 0.2 {
-                Cell::Alive
-            } else {
-                Cell::Dead
-            }
-        }).collect();
+        let cells = (0..width * height)
+            .map(|_| {
+                if Math::random() < 0.2 {
+                    Cell::Alive
+                } else {
+                    Cell::Dead
+                }
+            })
+            .collect();
 
         Universe {
             width,
             height,
             cells,
-            ticks
+            ticks,
         }
     }
 
@@ -163,46 +159,57 @@ impl Universe {
             width,
             height,
             cells,
-            ticks
+            ticks,
         }
     }
 
     /// Clear the current universe cells and replace them with a new randomly
     /// populated (~20% alive) Vector
     pub fn randomize(&mut self) {
-        self.cells = (0..self.width * self.height).map(|_| {
-            if Math::random() < 0.2 {
-                Cell::Alive
-            } else {
-                Cell::Dead
-            }
-        }).collect();
+        self.cells = (0..self.width * self.height)
+            .map(|_| {
+                if Math::random() < 0.2 {
+                    Cell::Alive
+                } else {
+                    Cell::Dead
+                }
+            })
+            .collect();
     }
 
     /// Update the Universe cells based on the Game of Life (rules)[https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules]
     pub fn tick(&mut self) {
-        let mut next = self.cells.clone();
+        let _timer = Timer::new("Universe::tick");
+        let mut next = {
+            let _timer = Timer::new("allocate next cells");
+            self.cells.clone()
+        };
 
-        for row in 0..self.height {
-            for col in 0..self.width {
-                let idx = self.get_index(row, col);
-                let cell = self.cells[idx];
-                let live_neighbours = self.live_neighbour_count(row, col);
+        {
+            let _timer = Timer::new("new generation");
+            for row in 0..self.height {
+                for col in 0..self.width {
+                    let idx = self.get_index(row, col);
+                    let cell = self.cells[idx];
+                    let live_neighbours = self.live_neighbour_count(row, col);
 
-                let next_cell = match(cell, live_neighbours) {
-                    (Cell::Alive, x) if x < 2 => Cell::Dead,
-                    (Cell::Alive, 2) | (Cell::Alive, 3) => Cell::Alive,
-                    (Cell::Alive, x) if x > 3 => Cell::Dead,
-                    (Cell::Dead, 3) => Cell::Alive,
-                    (otherwise, _) => otherwise
-                };
+                    let next_cell = match (cell, live_neighbours) {
+                        (Cell::Alive, x) if x < 2 => Cell::Dead,
+                        (Cell::Alive, 2) | (Cell::Alive, 3) => Cell::Alive,
+                        (Cell::Alive, x) if x > 3 => Cell::Dead,
+                        (Cell::Dead, 3) => Cell::Alive,
+                        (otherwise, _) => otherwise,
+                    };
 
-                next[idx] = next_cell;
+                    next[idx] = next_cell;
+                }
             }
         }
 
-        self.cells = next;
         self.ticks += 1;
+
+        let _timer = Timer::new("free old cells");
+        self.cells = next;
     }
 
     /// Get the current width of the Universe
@@ -232,7 +239,7 @@ impl Universe {
         self.cells = (0..self.width * height).map(|_i| Cell::Dead).collect();
     }
 
-    /// Allow cell state to be toggled by the wasm host by providing the cells row and column 
+    /// Allow cell state to be toggled by the wasm host by providing the cells row and column
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
         self.cells[idx].toggle();

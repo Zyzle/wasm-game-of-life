@@ -1,12 +1,12 @@
 import { Universe, Cell } from 'wasm-game-of-life';
 import { memory } from 'wasm-game-of-life/wasm_game_of_life_bg';
 
-const CELL_SIZE = 5;
+const CELL_SIZE = 1;
 const GRID_COLOR = '#ccc';
 const DEAD_COLOR = '#fff';
 const ALIVE_COLOR = '#000';
 
-const universe = Universe.new(64, 32);
+const universe = Universe.new(300, 300);
 const width = universe.width();
 const height = universe.height();
 
@@ -113,12 +113,12 @@ const isPaused = () => {
 }
 
 const play = () => {
-  playPauseButton.textContent = '⏸';
+  playPauseButton.textContent = 'pause';
   renderLoop();
 }
 
 const pause = () => {
-  playPauseButton.textContent = '▶️';
+  playPauseButton.textContent = 'play';
   cancelAnimationFrame(animationId);
   animationId = null;
 }
