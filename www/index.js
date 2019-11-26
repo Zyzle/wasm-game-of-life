@@ -1,12 +1,12 @@
 import { Universe, Cell } from 'wasm-game-of-life';
 import { memory } from 'wasm-game-of-life/wasm_game_of_life_bg';
 
-const CELL_SIZE = 1;
+const CELL_SIZE = 3;
 const GRID_COLOR = '#ccc';
 const DEAD_COLOR = '#fff';
 const ALIVE_COLOR = '#000';
 
-const universe = Universe.new(300, 300);
+const universe = Universe.new(1000, 1000);
 const width = universe.width();
 const height = universe.height();
 
@@ -16,48 +16,63 @@ const randomizeButton = document.getElementById('make-random');
 
 canvas.height = (CELL_SIZE + 1) * height + 1;
 canvas.width = (CELL_SIZE + 1) * width + 1;
+canvas.offscreenCanvas = document.createElement('canvas');
+canvas.offscreenCanvas.width = canvas.width;
+canvas.offscreenCanvas.height = canvas.height;
 
-const ctx = canvas.getContext('2d');
+const ctx = canvas.offscreenCanvas.getContext('2d', {alpha: false});
 
 const getIndex = (row, column) => {
   return row * width + column;
 };
 
+const deadCell = ctx.createImageData(CELL_SIZE, CELL_SIZE);
+for (let i = 0; i < deadCell.data.length; i++) {
+  deadCell.data[i] = 255;
+}
+
+const aliveCell = ctx.createImageData(CELL_SIZE, CELL_SIZE);
+for (let i = 0; i < aliveCell.data.length; i++) {
+  aliveCell.data[i] = 0;
+}
+
 const drawCells = () => {
   const cellsPtr = universe.cells();
   const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
 
-  ctx.beginPath();
+  // ctx.beginPath();
 
-  ctx.fillStyle = ALIVE_COLOR;
+  // ctx.fillStyle = ALIVE_COLOR;
   for(let row = 0; row < height; row++) {
     for (let col = 0; col < width; col++) {
       const idx = getIndex(row, col);
       if (cells[idx] !== Cell.Alive) {
         continue;
       }
-      ctx.fillRect(
-        col * (CELL_SIZE + 1) + 1,
-        row * (CELL_SIZE + 1) + 1,
-        CELL_SIZE,
-        CELL_SIZE
-      )
+      // ctx.fillRect(
+      //   col * (CELL_SIZE + 1) + 1,
+      //   row * (CELL_SIZE + 1) + 1,
+      //   CELL_SIZE,
+      //   CELL_SIZE
+      // )
+      ctx.putImageData(aliveCell, col * (CELL_SIZE + 1) + 1, row * (CELL_SIZE + 1) + 1);
     }
   }
 
-  ctx.fillStyle = DEAD_COLOR;
+  // ctx.fillStyle = DEAD_COLOR;
   for (let row = 0; row < height; row++) {
     for (let col = 0; col < width; col++) {
       const idx = getIndex(row, col);
       if (cells[idx] !== Cell.Dead) {
         continue;
       }
-      ctx.fillRect(
-        col * (CELL_SIZE + 1) + 1,
-        row * (CELL_SIZE + 1) + 1,
-        CELL_SIZE,
-        CELL_SIZE
-      );
+      // ctx.fillRect(
+      //   col * (CELL_SIZE + 1) + 1,
+      //   row * (CELL_SIZE + 1) + 1,
+      //   CELL_SIZE,
+      //   CELL_SIZE
+      // );
+      ctx.putImageData(deadCell, col * (CELL_SIZE + 1) + 1, row * (CELL_SIZE + 1) + 1 );
     }
   }
 
@@ -102,8 +117,9 @@ const renderLoop = () => {
   fps.render();
   universe.tick();
 
-  drawGrid();
+  // drawGrid();
   drawCells();
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 
   animationId = requestAnimationFrame(renderLoop);
 };
@@ -146,14 +162,16 @@ canvas.addEventListener('click', e => {
 
   universe.toggle_cell(row, col);
 
-  drawGrid();
+  // drawGrid();
   drawCells();
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 });
 
 randomizeButton.addEventListener('click', e => {
   universe.randomize();
-  drawGrid();
+  // drawGrid();
   drawCells();
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 });
 
 const fps = new class {
@@ -198,4 +216,5 @@ max of last 100 = ${Math.round(min)}
 
 drawGrid();
 drawCells();
+canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 // play();

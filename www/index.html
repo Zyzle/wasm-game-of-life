@@ -3,27 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>Hello wasm-pack!</title>
-    <style type="text/css">
-    body {
-      position: absolute;
-      min-width: 100%;
-      min-height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1em;
-    }
+    <style type="text/css" >
 
-    pre {
-      line-height: 10px;
-    }
-
-    .controls {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-    }
+      .gol-canvas, .controls, .stats {
+        margin: 1em;
+      }
     </style>
   </head>
   <body>
@@ -31,8 +15,9 @@
       <button id="make-random">randomize</button>
       <button id="play-pause">play</button>
     </div>
-    <canvas id="game-of-life-canvas" class="gol-canvas"></canvas>
+    <br />
     <pre id="fps" class="stats"></pre>
+    <canvas id="game-of-life-canvas" class="gol-canvas"></canvas>
     <script src="./bootstrap.js"></script>
   </body>
 </html>
