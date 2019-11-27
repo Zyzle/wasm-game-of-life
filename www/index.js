@@ -1,12 +1,13 @@
 import { Universe, Cell } from 'wasm-game-of-life';
 import { memory } from 'wasm-game-of-life/wasm_game_of_life_bg';
 
-const CELL_SIZE = 3;
+const CELL_SIZE = 5;
+const GRID_THICKNESS = 1;
 const GRID_COLOR = '#ccc';
 const DEAD_COLOR = '#fff';
 const ALIVE_COLOR = '#000';
 
-const universe = Universe.new(1000, 1000);
+const universe = Universe.new(300, 300);
 const width = universe.width();
 const height = universe.height();
 
@@ -14,8 +15,8 @@ const canvas = document.getElementById('game-of-life-canvas');
 const playPauseButton = document.getElementById('play-pause');
 const randomizeButton = document.getElementById('make-random');
 
-canvas.height = (CELL_SIZE + 1) * height + 1;
-canvas.width = (CELL_SIZE + 1) * width + 1;
+canvas.height = (CELL_SIZE + GRID_THICKNESS) * height + GRID_THICKNESS;
+canvas.width = (CELL_SIZE + GRID_THICKNESS) * width + GRID_THICKNESS;
 canvas.offscreenCanvas = document.createElement('canvas');
 canvas.offscreenCanvas.width = canvas.width;
 canvas.offscreenCanvas.height = canvas.height;
@@ -50,12 +51,12 @@ const drawCells = () => {
         continue;
       }
       // ctx.fillRect(
-      //   col * (CELL_SIZE + 1) + 1,
-      //   row * (CELL_SIZE + 1) + 1,
+      //   col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
+      //   row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
       //   CELL_SIZE,
       //   CELL_SIZE
       // )
-      ctx.putImageData(aliveCell, col * (CELL_SIZE + 1) + 1, row * (CELL_SIZE + 1) + 1);
+      ctx.putImageData(aliveCell, col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
     }
   }
 
@@ -67,12 +68,12 @@ const drawCells = () => {
         continue;
       }
       // ctx.fillRect(
-      //   col * (CELL_SIZE + 1) + 1,
-      //   row * (CELL_SIZE + 1) + 1,
+      //   col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
+      //   row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
       //   CELL_SIZE,
       //   CELL_SIZE
       // );
-      ctx.putImageData(deadCell, col * (CELL_SIZE + 1) + 1, row * (CELL_SIZE + 1) + 1 );
+      ctx.putImageData(deadCell, col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS );
     }
   }
 
@@ -83,8 +84,8 @@ const drawCells = () => {
   //     ctx.fillStyle = cells[idx] === Cell.Dead ? DEAD_COLOR : ALIVE_COLOR;
 
   //     ctx.fillRect(
-  //       col * (CELL_SIZE + 1) + 1,
-  //       row * (CELL_SIZE + 1) + 1,
+  //       col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
+  //       row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
   //       CELL_SIZE,
   //       CELL_SIZE
   //     );
@@ -99,13 +100,13 @@ const drawGrid = () => {
   ctx.strokeStyle = GRID_COLOR;
 
   for(let i = 0; i <= width; i++) {
-    ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
-    ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * height + 1);
+    ctx.moveTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, 0);
+    ctx.lineTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, (CELL_SIZE + GRID_THICKNESS) * height + GRID_THICKNESS);
   }
 
   for (let j = 0; j <= height; j++) {
-    ctx.moveTo(0, j * (CELL_SIZE + 1) + 1);
-    ctx.lineTo((CELL_SIZE + 1) * width + 1, j * (CELL_SIZE + 1) + 1);
+    ctx.moveTo(0, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
+    ctx.lineTo((CELL_SIZE + GRID_THICKNESS) * width + GRID_THICKNESS, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
   }
 
   ctx.stroke();
@@ -117,9 +118,8 @@ const renderLoop = () => {
   fps.render();
   universe.tick();
 
-  // drawGrid();
   drawCells();
-  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
+  canvas.getContext('2d', {alpha: false}).drawImage(canvas.offscreenCanvas, 0, 0);
 
   animationId = requestAnimationFrame(renderLoop);
 };
@@ -157,21 +157,21 @@ canvas.addEventListener('click', e => {
   const canvasLeft = (e.clientX - boundingRect.left) * scaleX;
   const canvasTop = (e.clientY - boundingRect.top) * scaleY;
 
-  const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
-  const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
+  const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + GRID_THICKNESS)), height - GRID_THICKNESS);
+  const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + GRID_THICKNESS)), width - GRID_THICKNESS);
 
   universe.toggle_cell(row, col);
 
-  // drawGrid();
+
   drawCells();
   canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 });
 
 randomizeButton.addEventListener('click', e => {
   universe.randomize();
-  // drawGrid();
+
   drawCells();
-  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
+  canvas.getContext('2d', {alpha: false}).drawImage(canvas.offscreenCanvas, 0, 0);
 });
 
 const fps = new class {
@@ -209,12 +209,10 @@ Frames per second:
          latest = ${Math.round(fps)}
 avg of last 100 = ${Math.round(mean)}
 min of last 100 = ${Math.round(min)}
-max of last 100 = ${Math.round(min)}
+max of last 100 = ${Math.round(max)}
 `.trim();
   }
 };
 
 drawGrid();
-drawCells();
-canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
-// play();
+canvas.getContext('2d', {alpha: false}).drawImage(canvas.offscreenCanvas, 0, 0);
