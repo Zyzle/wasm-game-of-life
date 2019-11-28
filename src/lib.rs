@@ -239,6 +239,10 @@ impl Universe {
         self.cells = (0..self.width * height).map(|_i| Cell::Dead).collect();
     }
 
+    pub fn reset_universe(&mut self) {
+        self.cells = (0..self.cells.len()).map(|_i| Cell::Dead).collect();
+    }
+
     /// Allow cell state to be toggled by the wasm host by providing the cells row and column
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
