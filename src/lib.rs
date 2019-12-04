@@ -166,6 +166,7 @@ impl Universe {
     /// Clear the current universe cells and replace them with a new randomly
     /// populated (~20% alive) Vector
     pub fn randomize(&mut self) {
+        self.ticks = 0;
         self.cells = (0..self.width * self.height)
             .map(|_| {
                 if Math::random() < 0.2 {
@@ -175,6 +176,11 @@ impl Universe {
                 }
             })
             .collect();
+    }
+
+    pub fn clear(&mut self) {
+        self.ticks = 0;
+        self.cells = (0..self.width * self.height).map(|_| Cell::Dead).collect();
     }
 
     /// Update the Universe cells based on the Game of Life (rules)[https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules]
@@ -227,19 +233,33 @@ impl Universe {
         self.cells.as_ptr()
     }
 
+    /// How many ticks the of the Universe have been calculated
+    pub fn ticks(&self) -> u32 {
+        self.ticks
+    }
+
+    /// Count the alive cells in the Universe
+    pub fn population(&self) -> u32 {
+        self.cells.iter().fold(0, |acc, &i| acc + (i as u32))
+    }
+
     /// Update the width of the existing Universe, this also resets the unverse to a completely dead state
     pub fn set_width(&mut self, width: u32) {
+        self.ticks = 0;
         self.width = width;
         self.cells = (0..width * self.height).map(|_i| Cell::Dead).collect();
     }
 
     /// Update the height of the existing Universe, this also resets the universe to a completely dead state
     pub fn set_height(&mut self, height: u32) {
+        self.ticks = 0;
         self.height = height;
         self.cells = (0..self.width * height).map(|_i| Cell::Dead).collect();
     }
 
+    /// Clear the current Universe setting all cells to dead
     pub fn reset_universe(&mut self) {
+        self.ticks = 0;
         self.cells = (0..self.cells.len()).map(|_i| Cell::Dead).collect();
     }
 
@@ -247,6 +267,10 @@ impl Universe {
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
         self.cells[idx].toggle();
+    }
+
+    pub fn fast_forward_to(&mut self, ticks: u32) {
+        (0..ticks).for_each(|_| self.tick());
     }
 }
 

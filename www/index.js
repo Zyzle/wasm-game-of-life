@@ -7,13 +7,15 @@ const GRID_COLOR = '#ccc';
 const DEAD_COLOR = '#fff';
 const ALIVE_COLOR = '#000';
 
-const universe = Universe.new(300, 300);
+const universe = Universe.new(200, 100);
 const width = universe.width();
 const height = universe.height();
 
 const canvas = document.getElementById('game-of-life-canvas');
 const playPauseButton = document.getElementById('play-pause');
 const randomizeButton = document.getElementById('make-random');
+const clearButton = document.getElementById('clear');
+const ffButton = document.getElementById('ff200');
 
 canvas.height = (CELL_SIZE + GRID_THICKNESS) * height + GRID_THICKNESS;
 canvas.width = (CELL_SIZE + GRID_THICKNESS) * width + GRID_THICKNESS;
@@ -21,20 +23,30 @@ canvas.offscreenCanvas = document.createElement('canvas');
 canvas.offscreenCanvas.width = canvas.width;
 canvas.offscreenCanvas.height = canvas.height;
 
-const ctx = canvas.offscreenCanvas.getContext('2d', {alpha: false});
+const ctx = canvas.offscreenCanvas.getContext('2d');
+ctx.fillStyle = 'white';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 const getIndex = (row, column) => {
   return row * width + column;
 };
 
+// #FAD779
 const deadCell = ctx.createImageData(CELL_SIZE, CELL_SIZE);
-for (let i = 0; i < deadCell.data.length; i++) {
-  deadCell.data[i] = 255;
+for (let i = 0; i < deadCell.data.length; i += 4) {
+  deadCell.data[i] = 0xfa;
+  deadCell.data[i+1] = 0xd7;
+  deadCell.data[i+2] = 0x79;
+  deadCell.data[i+3] = 0xff;
 }
 
+// #828B20
 const aliveCell = ctx.createImageData(CELL_SIZE, CELL_SIZE);
-for (let i = 0; i < aliveCell.data.length; i++) {
-  aliveCell.data[i] = 0;
+for (let i = 0; i < aliveCell.data.length; i += 4) {
+  aliveCell.data[i] = 0x82;
+  aliveCell.data[i + 1] = 0x8b;
+  aliveCell.data[i + 2] = 0x20;
+  aliveCell.data[i + 3] = 0xff;
 }
 
 const drawCells = () => {
@@ -92,25 +104,25 @@ const drawCells = () => {
   //   }
   // }
 
-  ctx.stroke();
+  // ctx.stroke();
 };
 
-const drawGrid = () => {
-  ctx.beginPath();
-  ctx.strokeStyle = GRID_COLOR;
+// const drawGrid = () => {
+//   ctx.beginPath();
+//   ctx.strokeStyle = GRID_COLOR;
 
-  for(let i = 0; i <= width; i++) {
-    ctx.moveTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, 0);
-    ctx.lineTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, (CELL_SIZE + GRID_THICKNESS) * height + GRID_THICKNESS);
-  }
+//   for(let i = 0; i <= width; i++) {
+//     ctx.moveTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, 0);
+//     ctx.lineTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, (CELL_SIZE + GRID_THICKNESS) * height + GRID_THICKNESS);
+//   }
 
-  for (let j = 0; j <= height; j++) {
-    ctx.moveTo(0, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
-    ctx.lineTo((CELL_SIZE + GRID_THICKNESS) * width + GRID_THICKNESS, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
-  }
+//   for (let j = 0; j <= height; j++) {
+//     ctx.moveTo(0, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
+//     ctx.lineTo((CELL_SIZE + GRID_THICKNESS) * width + GRID_THICKNESS, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
+//   }
 
-  ctx.stroke();
-};
+//   ctx.stroke();
+// };
 
 let animationId = null;
 
@@ -119,7 +131,7 @@ const renderLoop = () => {
   universe.tick();
 
   drawCells();
-  canvas.getContext('2d', {alpha: false}).drawImage(canvas.offscreenCanvas, 0, 0);
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 
   animationId = requestAnimationFrame(renderLoop);
 };
@@ -171,7 +183,20 @@ randomizeButton.addEventListener('click', e => {
   universe.randomize();
 
   drawCells();
-  canvas.getContext('2d', {alpha: false}).drawImage(canvas.offscreenCanvas, 0, 0);
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
+});
+
+clearButton.addEventListener('click', e => {
+  universe.clear();
+  drawCells();
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
+});
+
+ffButton.addEventListener('click', e => {
+  universe.fast_forward_to(200);
+  fps.render();
+  drawCells();
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 });
 
 const fps = new class {
@@ -204,7 +229,12 @@ const fps = new class {
 
     let mean = sum / this.frames.length;
 
+    let ticks = universe.ticks();
+    let pop = universe.population();
+
     this.fps.textContent = `
+Universe tick: ${ticks}
+Universe population: ${pop}
 Frames per second:
          latest = ${Math.round(fps)}
 avg of last 100 = ${Math.round(mean)}
@@ -214,5 +244,5 @@ max of last 100 = ${Math.round(max)}
   }
 };
 
-drawGrid();
-canvas.getContext('2d', {alpha: false}).drawImage(canvas.offscreenCanvas, 0, 0);
+drawCells();
+canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);

@@ -4,20 +4,31 @@
     <meta charset="utf-8">
     <title>Hello wasm-pack!</title>
     <style type="text/css" >
-
+      .content {
+        display: flex;
+        flex-direction: row;
+      }
       .gol-canvas, .controls, .stats {
         margin: 1em;
+      }
+      .sidebar {
+        width: 15%
       }
     </style>
   </head>
   <body>
-    <div class="controls">
-      <button id="make-random">randomize</button>
-      <button id="play-pause">play</button>
-    </div>
-    <br />
-    <pre id="fps" class="stats"></pre>
-    <canvas id="game-of-life-canvas" class="gol-canvas"></canvas>
+    <main class="content">
+      <div class="sidebar">
+        <div class="controls">
+          <button id="clear">clear</button>
+          <button id="make-random">randomize</button>
+          <button id="play-pause">play</button>
+          <button id="ff200">Fast Forward (200)</button>
+        </div>
+        <pre id="fps" class="stats"></pre>
+      </div>
+      <canvas id="game-of-life-canvas" class="gol-canvas"></canvas>
+    </main>
     <script src="./bootstrap.js"></script>
   </body>
 </html>
