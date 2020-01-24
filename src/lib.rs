@@ -178,6 +178,7 @@ impl Universe {
             .collect();
     }
 
+    /// Reset entire Universe to dead state
     pub fn clear(&mut self) {
         self.ticks = 0;
         self.cells = (0..self.width * self.height).map(|_| Cell::Dead).collect();
@@ -269,9 +270,14 @@ impl Universe {
         self.cells[idx].toggle();
     }
 
+    /// fast forward `ticks` number of ticks in the Universe lifetime
     pub fn fast_forward_to(&mut self, ticks: u32) {
         (0..ticks).for_each(|_| self.tick());
     }
+
+    // pub fn to_image_data(&mut self) -> *const [u32] {
+        
+    // }
 }
 
 /// Implementation containing methods for testing

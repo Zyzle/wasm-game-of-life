@@ -1,7 +1,7 @@
 [package]
 name = "wasm-game-of-life"
 version = "0.1.0"
-authors = ["Colin McCulloch <n1l0c2501@gmail.com>"]
+authors = ["Colin McCulloch <colin@zyzle.dev>"]
 edition = "2018"
 license = "MIT"
 repository = "https://github.com/Zyzle/wasm-game-of-life.git"
