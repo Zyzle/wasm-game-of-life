@@ -27,102 +27,17 @@ const ctx = canvas.offscreenCanvas.getContext('2d');
 ctx.fillStyle = 'white';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-const getIndex = (row, column) => {
-  return row * width + column;
-};
-
-// #FAD779
-const deadCell = ctx.createImageData(CELL_SIZE, CELL_SIZE);
-for (let i = 0; i < deadCell.data.length; i += 4) {
-  deadCell.data[i] = 0xfa;
-  deadCell.data[i+1] = 0xd7;
-  deadCell.data[i+2] = 0x79;
-  deadCell.data[i+3] = 0xff;
-}
-
-// #828B20
-const aliveCell = ctx.createImageData(CELL_SIZE, CELL_SIZE);
-for (let i = 0; i < aliveCell.data.length; i += 4) {
-  aliveCell.data[i] = 0x82;
-  aliveCell.data[i + 1] = 0x8b;
-  aliveCell.data[i + 2] = 0x20;
-  aliveCell.data[i + 3] = 0xff;
-}
-
 const drawCells = () => {
-  const cellsPtr = universe.cells();
-  const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
+  const imagePtr = universe.image();
+  const image = new ImageData(
+    new Uint8ClampedArray(
+      memory.buffer, imagePtr, 4 * width * height
+    ),
+    width
+  );
 
-  // ctx.beginPath();
-
-  // ctx.fillStyle = ALIVE_COLOR;
-  for(let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-      const idx = getIndex(row, col);
-      if (cells[idx] !== Cell.Alive) {
-        continue;
-      }
-      // ctx.fillRect(
-      //   col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
-      //   row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
-      //   CELL_SIZE,
-      //   CELL_SIZE
-      // )
-      ctx.putImageData(aliveCell, col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
-    }
-  }
-
-  // ctx.fillStyle = DEAD_COLOR;
-  for (let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-      const idx = getIndex(row, col);
-      if (cells[idx] !== Cell.Dead) {
-        continue;
-      }
-      // ctx.fillRect(
-      //   col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
-      //   row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
-      //   CELL_SIZE,
-      //   CELL_SIZE
-      // );
-      ctx.putImageData(deadCell, col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS );
-    }
-  }
-
-  // for (let row = 0; row < height; row++) {
-  //   for (let col = 0; col < width; col++) {
-  //     const idx = getIndex(row, col);
-
-  //     ctx.fillStyle = cells[idx] === Cell.Dead ? DEAD_COLOR : ALIVE_COLOR;
-
-  //     ctx.fillRect(
-  //       col * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
-  //       row * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS,
-  //       CELL_SIZE,
-  //       CELL_SIZE
-  //     );
-  //   }
-  // }
-
-  // ctx.stroke();
+  ctx.putImageData(image, 0, 0);
 };
-
-// const drawGrid = () => {
-//   ctx.beginPath();
-//   ctx.strokeStyle = GRID_COLOR;
-
-//   for(let i = 0; i <= width; i++) {
-//     ctx.moveTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, 0);
-//     ctx.lineTo(i * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS, (CELL_SIZE + GRID_THICKNESS) * height + GRID_THICKNESS);
-//   }
-
-//   for (let j = 0; j <= height; j++) {
-//     ctx.moveTo(0, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
-//     ctx.lineTo((CELL_SIZE + GRID_THICKNESS) * width + GRID_THICKNESS, j * (CELL_SIZE + GRID_THICKNESS) + GRID_THICKNESS);
-//   }
-
-//   ctx.stroke();
-// };
 
 let animationId = null;
 

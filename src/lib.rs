@@ -43,6 +43,8 @@ pub struct Universe {
     cells: Vec<Cell>,
     /// How many animation 'ticks' the universe has gone through since its creation
     ticks: u32,
+    /// A vector holding u32s representing each pixel in the generated image of the Universe
+    image: Vec<u32>,
 }
 
 /// Private methods
@@ -70,6 +72,9 @@ impl Universe {
         //         count += self.cells[idx] as u8;
         //     }
         // }
+        // cargo benchcmp before.txt after.txt
+        // name            before.txt ns/iter  after.txt ns/iter  diff ns/iter   diff %  speedup
+        // universe_ticks  186,865             41,926                 -144,939  -77.56%   x 4.46
 
         let north = if row == 0 { self.height - 1 } else { row - 1 };
 
@@ -137,11 +142,14 @@ impl Universe {
             })
             .collect();
 
+        let image = (0..width * height).map(|_| 0).collect();
+
         Universe {
             width,
             height,
             cells,
             ticks,
+            image,
         }
     }
 
@@ -154,12 +162,14 @@ impl Universe {
         let ticks = 0;
 
         let cells = (0..width * height).map(|_| Cell::Dead).collect();
+        let image = (0..width * height).map(|_| 0).collect();
 
         Universe {
             width,
             height,
             cells,
             ticks,
+            image,
         }
     }
 
@@ -176,12 +186,14 @@ impl Universe {
                 }
             })
             .collect();
+        self.make_image();
     }
 
     /// Reset entire Universe to dead state
     pub fn clear(&mut self) {
         self.ticks = 0;
         self.cells = (0..self.width * self.height).map(|_| Cell::Dead).collect();
+        self.make_image();
     }
 
     /// Update the Universe cells based on the Game of Life (rules)[https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules]
@@ -215,8 +227,15 @@ impl Universe {
 
         self.ticks += 1;
 
-        let _timer = Timer::new("free old cells");
-        self.cells = next;
+        {
+            let _timer = Timer::new("clone back to cells");
+            self.cells.clone_from(&next);
+        }
+
+        {
+            let _timer = Timer::new("calculate image");
+            self.make_image();
+        }
     }
 
     /// Get the current width of the Universe
@@ -232,6 +251,10 @@ impl Universe {
     /// Return a pointer to the Universes cells Vector, allowing it to be consumed by the WASM host
     pub fn cells(&self) -> *const Cell {
         self.cells.as_ptr()
+    }
+
+    pub fn image(&self) -> *const u32 {
+        self.image.as_ptr()
     }
 
     /// How many ticks the of the Universe have been calculated
@@ -275,9 +298,17 @@ impl Universe {
         (0..ticks).for_each(|_| self.tick());
     }
 
-    // pub fn to_image_data(&mut self) -> *const [u32] {
-        
-    // }
+    pub fn make_image(&mut self) {
+        const ALIVE: u32 = 0xFF_20_8B_82;
+        const DEAD: u32 = 0xFF_79_D7_FA;
+
+        for (i, cell) in self.cells.iter().enumerate() {
+            self.image[i] = match cell {
+                Cell::Alive => ALIVE,
+                Cell::Dead => DEAD,
+            }
+        }
+    }
 }
 
 /// Implementation containing methods for testing
