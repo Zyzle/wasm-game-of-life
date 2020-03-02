@@ -14,6 +14,7 @@ const height = universe.height();
 const canvas = document.getElementById('game-of-life-canvas');
 const playPauseButton = document.getElementById('play-pause');
 const randomizeButton = document.getElementById('make-random');
+const preset1Button = document.getElementById('preset1');
 const clearButton = document.getElementById('clear');
 const ffButton = document.getElementById('ff200');
 
@@ -97,6 +98,13 @@ canvas.addEventListener('click', e => {
 randomizeButton.addEventListener('click', e => {
   universe.randomize();
 
+  drawCells();
+  canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
+});
+
+preset1Button.addEventListener('click', e => {
+  universe.preset1();
+  universe.make_image();
   drawCells();
   canvas.getContext('2d').drawImage(canvas.offscreenCanvas, 0, 0);
 });

@@ -189,6 +189,22 @@ impl Universe {
         self.make_image();
     }
 
+    pub fn preset1(&mut self) {
+        let start = (self.height / 2) * self.width;
+        let end = start + self.width;
+        self.ticks = 0;
+        self.cells = (0..self.width * self.height)
+            .map(|i| {
+                if i > start && i < end - 1 {
+                    Cell::Alive
+                } else {
+                    Cell::Dead
+                }
+            })
+            .collect();
+        self.make_image();
+    }
+
     /// Reset entire Universe to dead state
     pub fn clear(&mut self) {
         self.ticks = 0;
